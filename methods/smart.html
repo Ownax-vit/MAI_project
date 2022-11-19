@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMART</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"
+          rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
+
+
+
+          <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+          <link rel="stylesheet" href="../styles.css">
+
+</head>
+<body>
+ 
+    <div class="container" style="height:100%">
+        <a href="../index.html">На главную</a><br>
+        <h1> Simple Multi-Attribute Rating Technique</h1>
+        <div class="criteries">
+        <h5>Введите количество критериев</h5>
+            <input type="text" id="number_cr">
+            <button  href="javascript:void()" onclick="createMatricesCrit()">Подтвердить</button>
+            <br>
+        </div>
+    
+        <h5>Введите количество альтернатив</h5><br>
+        <input type="text"  id="number_al">
+        <button  href="javascript:void()" onclick="createMatricesAlternatives()">Подтвердить</button>
+    
+    <script>
+    
+        let arrayRateCrit = [];
+        let arrayRateAlter = [];
+        let arrayGlobalRate = [];
+        let number_Cr = 0;
+        let number_Al = 0;
+    
+        function createMatricesCrit(){
+            // формирование матрицы критериев 
+            criteria = document.getElementById("number_cr").value;
+            number_Cr = criteria;
+            // кнопка подсчета матрицы критериев
+            const calcBtn = document.createElement("button");
+            calcBtn.setAttribute('id', "calcMatrixCriteria");
+            calcBtn.setAttribute('class', "btn btn-primary");
+            calcBtn.setAttribute('href', "javascript:void()");
+            calcBtn.setAttribute('onclick', "calcMatrixCriteria()");
+            calcBtn.innerText = "Вычислить";
+            const divCrit = document.getElementsByClassName("criteries")[0];
+            createMatrix("MatrixCriteria", criteria, criteria, divCrit, calcBtn); // создание матрицы критериев
+        }
+    
+        function createMatricesAlternatives(){
+            // формирование матриц альтернатив
+            criteria = document.getElementById("number_cr").value;
+            alternatives = document.getElementById("number_al").value;
+            number_Al = alternatives;
+            
+            // создание всех матриц сравнение альтернатив по критериям
+            for (i=1; i<=criteria; i++){
+                // кнопка подсчета матрицы критериев
+                let idMatrix = "MatrixAlternative"+i
+                const blockMatrix = document.getElementsByClassName("container")[0];
+                const nameBlockMatr = document.createElement("h6");
+                nameBlockMatr.innerText = `K${i}`;
+                blockMatrix.appendChild(nameBlockMatr);
+                createMatrix(idMatrix, alternatives, alternatives, blockMatrix); 
+            }
+    
+            br = document.createElement("br");
+            blockForRes.appendChild(br);
+            calcBtnGlobalRate = document.createElement("button");
+            calcBtnGlobalRate.setAttribute('class', 'btn btn-danger');
+            calcBtnGlobalRate.setAttribute('id', `calcBtnGlobalRate`);
+            calcBtnGlobalRate.setAttribute('href', "javascript:void()");
+            calcBtnGlobalRate.setAttribute('onclick', "calcGlobalRate()");
+            calcBtnGlobalRate.style.margin = "20px";
+            calcBtnGlobalRate.innerText = "Вычислить глобальный приоритет";
+            blockForRes.appendChild(calcBtnGlobalRate);
+        }
+    
+        function createMatrix(idMatrix, numberRow, numberCol, divB, calcBtn=null){
+            // создает матрицу по имени, размерности, кнопки вычисления
+    
+            let matrix = document.getElementById(idMatrix);
+            console.log(matrix);
+            // удалить если существует матрица 
+            if (matrix != null) {
+                let btnCalc = document.getElementById("calc" + idMatrix);
+                btnCalc.remove();
+                matrix.remove()
+            }
+            
+            // привязка к контейнеру и диву
+            const divTbl = document.createElement("div");
+            divB.appendChild(divTbl);
+    
+            divTbl.setAttribute("class", "table-responsive");
+    
+            const tbl = document.createElement("table");
+            const tblBody = document.createElement("tbody");
+
+            // создание шапки
+            headRow = document.createElement("tr");
+            for (let i = 1; i <= numberRow; i++){
+                headCell = document.createElement("th");
+                if (calcBtn === null) {
+                    headCell.innerText = `A${i}`;
+                } else {
+                    headCell.innerText = `K${i}`;
+                }
+                headRow.appendChild(headCell);
+            }
+            tblBody.appendChild(headRow);
+
+            const row = document.createElement("tr");
+            // создание ячеек
+            for (let i = 0; i < numberRow; i++) {
+                // строка
+                const cell = document.createElement("td");
+                const inp = document.createElement("input");
+                inp.setAttribute("id", `${idMatrix}cell${0}${i}`);
+                inp.setAttribute("type", "number");
+                inp.style.width = "4em";
+                cell.appendChild(inp);
+                row.appendChild(cell);
+
+            }
+            // строку к таблице
+            tblBody.appendChild(row);
+            
+            divTbl.appendChild(tbl);
+            tbl.appendChild(tblBody);
+            // привязка таблицы 
+    
+            // добавляет атрибуты
+            tbl.setAttribute("class", "table table-sm");
+            tbl.setAttribute("id", idMatrix);
+    
+            if (calcBtn === null) {
+                // если кнопка не передается (в матрице критериев)
+                calcBtn = document.createElement("button");
+                calcBtn.setAttribute('class', 'btn btn-primary');
+                calcBtn.setAttribute('id', `calc${idMatrix}`);
+                calcBtn.setAttribute('href', "javascript:void()");
+                console.log('ca', idMatrix);
+    
+                calcBtn.setAttribute('onclick', `calcMatrixInfo(${idMatrix}, ${numberRow})`);
+                calcBtn.innerText = "Вычислить";
+                divB.appendChild(calcBtn);
+                blockForRes = divB;
+            } else {
+                divB.appendChild(calcBtn);
+            }
+          
+        }
+    
+        function calcMatrixCriteria(){
+            // формирование матрицы критериев
+            matrix = document.getElementById("MatrixCriteria");
+            cells = matrix.getElementsByTagName('input');
+            criteria = document.getElementById("number_cr").value;
+    
+            arrayValue = vectorFromRow(cells, criteria);
+            console.log(arrayValue);
+    
+    
+            arrayRatesCrit = calcRate(arrayValue);
+            arrayRateCrit = arrayRatesCrit;
+    
+            createResInfo(matrix.parentElement, arrayRatesCrit, typeMatrix="K");
+
+            event.target.remove(); // удаление кнопки для избегания бага с дублированием весов
+    
+        }
+        function calcMatrixInfo(matrix, number){
+            // подсчет матрицы
+            matrix = matrix;
+            console.log("matrix this",matrix);
+            cells = matrix.getElementsByTagName('input');
+            criteria =  number;
+    
+            arrayValue = vectorFromRow(cells, criteria);
+            console.log(arrayValue);
+    
+            arrayRates = calcRate(arrayValue);
+            arrayRateAlter.push(arrayRates);
+
+            createResInfo(matrix.parentElement, arrayRates);
+
+            event.target.remove(); // удаление кнопки для избегания бага с дублированием весов
+
+    
+        }
+    
+        function createResInfo(blockElement, array, typeMatrix="A"){
+            // вывод результатов подсчета
+            const tblInfo = document.createElement("table");
+            hdEl = document.createElement("tr");
+            tblInfo.appendChild(hdEl);
+    
+            cellName = document.createElement("th");
+            cellName.innerText = "Наименование";
+            cellValue = document.createElement("th");
+            cellValue.innerText = "Значение"
+    
+            hdEl.appendChild(cellName);
+            hdEl.appendChild(cellValue);
+    
+            // таблица весов
+            for (i=0; i<=array.length-1; i++){
+                console.log(i);
+                const row = document.createElement("tr");
+                let cell1 = document.createElement("td");
+                cell1.innerText = typeMatrix + i;
+    
+                let cell2 = document.createElement("td");
+                cell2.innerText = array[i];
+    
+                row.appendChild(cell1);
+                row.appendChild(cell2);
+                console.log(row);
+    
+                tblInfo.appendChild(row);
+            }
+    
+            // итоговая привязка
+            blockElement.appendChild(tblInfo);
+ 
+    
+        }
+    
+    
+        function vectorFromRow(cells, numberRow){
+            // первую строку в матрицу по методу УМАИ
+
+            // проход по инпутам, преобразование в массив
+            const arrayValues = [];
+            count = 0 // счетчик пройденных элементов
+            vector = []
+
+            for (let i=1; i<=numberRow; i++){
+                // проход эталонной строки
+                currentCell = cells[count].value;
+                vector.push(parseFloat(currentCell));
+                count++;
+            }
+
+            return  vector
+        }
+
+
+        function calcRate(arrayValue){
+            // подсчет весов матрицы
+
+            let arrayRate = []
+            let sumValue = 0
+    
+            // подсчет суммы оценок
+            arrayValue.forEach(el => {
+                sumValue += el;
+            })
+
+            // подсчет весов 
+            arrayValue.forEach(el=>{
+                    rateRow = el / sumValue;
+                    arrayRate.push(rateRow);
+            })
+            console.log("Rate:", arrayRate);
+            return  arrayRate;
+        }
+    
+        function calcGlobalRate(){
+            arrayGlobalRate = [];
+            console.log(arrayRateCrit);
+            console.log(arrayRateAlter);
+        
+            for (i=0; i<=arrayRateAlter.length-1; i++){
+                // обход весов критериев
+                proz = 0;
+                for (j=0; j<=arrayRateCrit.length-1; j++){
+                    // обход весов альтернатив
+                    proz += arrayRateAlter[j][i] * arrayRateCrit[j];
+                    console.log(proz);
+                }
+                arrayGlobalRate.push(proz);
+            }    
+            showGlobalResults();
+            return arrayGlobalRate
+        }
+    
+        function showGlobalResults(){
+            // показать итоговые результаты
+            blockForRes = document.createElement("div");
+            blockForRes.setAttribute("id", "resultBlock");
+    
+            const tblInfo = document.createElement("table");
+            hdEl = document.createElement("tr");
+            blockForRes.appendChild(tblInfo);
+            tblInfo.appendChild(hdEl);
+    
+            cellName = document.createElement("th");
+            cellName.innerText = "Альтернатива";
+            cellValue = document.createElement("th");
+            cellValue.innerText = "Значение"
+    
+            hdEl.appendChild(cellName);
+            hdEl.appendChild(cellValue);
+    
+            // таблица весов
+            for (i=0; i<=arrayGlobalRate.length-1; i++){
+                console.log(i);
+                const row = document.createElement("tr");
+                let cell1 = document.createElement("td");
+                cell1.innerText = "A" + i;
+    
+                let cell2 = document.createElement("td");
+                cell2.innerText = arrayGlobalRate[i];
+    
+                row.appendChild(cell1);
+                row.appendChild(cell2);
+                console.log(row);
+    
+                tblInfo.appendChild(row);
+            }
+            cont = document.getElementsByClassName("container")[0]
+            console.log(cont);
+            console.log(blockForRes);
+            cont.appendChild(blockForRes);
+            createChart(blockForRes);
+        }
+        function createChart(blockForChart){
+    
+            can = document.createElement("canvas");
+            can.setAttribute("id", "chartRes");
+    
+            blockForChart.appendChild(can);
+    
+            labels = []
+            for (i=1; i<=arrayGlobalRate.length; i++){
+                labels.push(`a${i}`)
+            }
+            
+            data = {
+                labels: labels,
+                datasets: [
+                    {   label: "Глобальный приоритет",
+                        data: arrayGlobalRate
+                    }],
+            }
+            console.log(data);
+            const configChart = {
+                type: 'bar',
+                data: data,
+                options: {
+                    scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                    }
+                },
+            };
+    
+            let chartRes = new Chart(can, configChart); 
+    
+        }
+    
+    </script>
+    </div>
+
+    <!--Футер-->
+    <footer class="container">
+        <div class="list-group">
+            <a href="classic-mai.html" class="list-group-item list-group-item-action">Классический МАИ</a>
+            <a href="smart.html" class="list-group-item list-group-item-action active " aria-current="true">
+                SMART
+            </a>
+            <a href="umai.html" class="list-group-item list-group-item-action">Упрощенный МАИ</a>
+            <a href="mmai.html" class="list-group-item list-group-item-action">Мультипликативный МАИ</a>
+        </div>  
+        <div class="foot m-5">
+            <b><i>2022</i></b>
+        </div>
+
+    </footer>
+
+
+    <!-- Либы для работы бутстрапа-->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3" crossorigin="anonymous"></script>
+
+</body>
+</html>

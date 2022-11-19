@@ -1,0 +1,27 @@
+
+*{
+    transition: 1s;
+}
+h1{
+    margin:20px;
+}
+h5{
+    margin:10px;
+}
+input{
+    border:1px solid #0d6efd;
+}
+footer{
+    margin-top: 100px;
+}
+table{
+      border:1px solid #dee2e6;
+      text-align: center;
+      padding: 2px;
+}
+td{
+    border:1px solid #dee2e6;
+}
+button{
+    margin-bottom:10px;
+}
