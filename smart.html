@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Упрощенный МАИ</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"
+          rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
+
+
+
+          <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+          <style>
+              table{
+                  border:1px solid blue;
+          
+              }
+          </style>
+</head>
+<body>
+ 
+    <div class="container" style="height:100%">
+        <a href="index.html">На главную</a><br>
+        <h1> Упрощенный метод анализа иерархий </h1>
+        <div class="criteries">
+        <h5>Введите количество критериев</h5>
+            <input type="text" id="number_cr">
+            <button  href="javascript:void()" onclick="createMatricesCrit()">Подтвердить</button>
+            <br>
+        </div>
+    
+        <h5>Введите количество альтернатив</h5><br>
+        <input type="text"  id="number_al">
+        <button  href="javascript:void()" onclick="createMatricesAlternatives()">Подтвердить</button>
+    
+    <script>
+    
+        const arrayOS = [0, 0, 0.58, 0.90, 1.12, 1.24, 1.32, 1.41, 1.45, 1.49];
+        let arrayRateCrit = [];
+        let arrayRateAlter = [];
+        let arrayGlobalRate = [];
+        let number_Cr = 0;
+        let number_Al = 0;
+    
+        function createMatricesCrit(){
+            // формирование матрицы критериев 
+            criteria = document.getElementById("number_cr").value;
+            number_Cr = criteria;
+            // кнопка подсчета матрицы критериев
+            const calcBtn = document.createElement("button");
+            calcBtn.setAttribute('id', "calcMatrixCriteria");
+            calcBtn.setAttribute('class', "btn btn-primary");
+            calcBtn.setAttribute('href', "javascript:void()");
+            calcBtn.setAttribute('onclick', "calcMatrixCriteria()");
+            calcBtn.innerText = "Вычислить";
+            const divCrit = document.getElementsByClassName("criteries")[0];
+            createMatrix("MatrixCriteria", criteria, criteria, divCrit, calcBtn); // создание матрицы критериев
+        }
+    
+        function createMatricesAlternatives(){
+            // формирование матриц альтернатив
+            criteria = document.getElementById("number_cr").value;
+            alternatives = document.getElementById("number_al").value;
+            number_Al = alternatives;
+            
+            // создание всех матриц сравнение альтернатив по критериям
+            for (i=1; i<=criteria; i++){
+                // кнопка подсчета матрицы критериев
+                let idMatrix = "MatrixAlternative"+i
+            
+                const blockMatrix = document.getElementsByClassName("container")[0];
+                createMatrix(idMatrix, alternatives, alternatives, blockMatrix); 
+            }
+    
+            br = document.createElement("br");
+            blockForRes.appendChild(br);
+            calcBtnGlobalRate = document.createElement("button");
+            calcBtnGlobalRate.setAttribute('class', 'btn btn-danger');
+            calcBtnGlobalRate.setAttribute('id', `calcBtnGlobalRate`);
+            calcBtnGlobalRate.setAttribute('href', "javascript:void()");
+            calcBtnGlobalRate.setAttribute('onclick', "calcGlobalRate()");
+            calcBtnGlobalRate.style.margin = "20px";
+            calcBtnGlobalRate.innerText = "Вычислить глобальный приоритет";
+            blockForRes.appendChild(calcBtnGlobalRate);
+        }
+    
+        function createMatrix(idMatrix, numberRow, numberCol, divB, calcBtn=null){
+            // создает матрицу по имени, размерности, кнопки вычисления
+    
+            let matrix = document.getElementById(idMatrix);
+            console.log(matrix);
+            // удалить если существует матрица 
+            if (matrix != null) {
+                let btnCalc = document.getElementById("calc" + idMatrix);
+                btnCalc.remove();
+                matrix.remove()
+            }
+            
+            // привязка к контейнеру и диву
+            const divTbl = document.createElement("div");
+            divB.appendChild(divTbl);
+    
+            divTbl.setAttribute("class", "table-responsive");
+    
+            const tbl = document.createElement("table");
+            const tblBody = document.createElement("tbody");
+
+            const row = document.createElement("tr");
+            // создание ячеек
+            for (let i = 0; i < numberRow; i++) {
+                // строка
+                const cell = document.createElement("td");
+                const inp = document.createElement("input");
+                inp.setAttribute("id", `${idMatrix}cell${0}${i}`);
+                inp.setAttribute("type", "number");
+                inp.style.width = "4em";
+                cell.appendChild(inp);
+                row.appendChild(cell);
+
+            }
+            // строку к таблице
+            tblBody.appendChild(row);
+            
+            divTbl.appendChild(tbl);
+            tbl.appendChild(tblBody);
+            // привязка таблицы 
+    
+            // добавляет атрибуты
+            tbl.setAttribute("class", "table table-sm");
+            tbl.setAttribute("id", idMatrix);
+    
+            if (calcBtn === null) {
+                // если кнопка не передается (в матрице критериев)
+                calcBtn = document.createElement("button");
+                calcBtn.setAttribute('class', 'btn btn-primary');
+                calcBtn.setAttribute('id', `calc${idMatrix}`);
+                calcBtn.setAttribute('href', "javascript:void()");
+                console.log('ca', idMatrix);
+    
+                calcBtn.setAttribute('onclick', `calcMatrixInfo(${idMatrix}, ${numberRow})`);
+                calcBtn.innerText = "Вычислить";
+                divB.appendChild(calcBtn);
+                blockForRes = divB;
+            } else {
+                divB.appendChild(calcBtn);
+            }
+          
+        }
+    
+        function calcMatrixCriteria(){
+            // формирование матрицы критериев
+    
+            matrix = document.getElementById("MatrixCriteria");
+            cells = matrix.getElementsByTagName('input');
+            criteria = document.getElementById("number_cr").value;
+    
+            arrayValue = arrayFromRow(cells, criteria, criteria);
+            console.log(arrayValue);
+    
+    
+            arrayRatesCrit = calcRate(arrayValue);
+    
+            arrayRateCrit = arrayRatesCrit;
+    
+            lambdaMAI = calcLambda(arrayValue, arrayRatesCrit);
+            indexSogl = calcIndexSogl(lambdaMAI, arrayValue.length);
+            otnoshSogl = calcOtnoshSogl(indexSogl, arrayValue.length);
+    
+            console.log("lambda", lambdaMAI);
+            console.log("IS", indexSogl);
+            console.log("OS", otnoshSogl);
+    
+            createResInfo(matrix.parentElement, arrayRatesCrit, lambdaMAI, 
+            indexSogl, otnoshSogl,typeMatrix="K");
+    
+        }
+        function calcMatrixInfo(matrix, number){
+            // подсчет матрицы
+            matrix = matrix;
+            console.log("matrix this",matrix);
+            cells = matrix.getElementsByTagName('input');
+            criteria =  number;
+    
+            arrayValue = arrayFromRow(cells, criteria, criteria);
+            console.log(arrayValue);
+    
+            arrayRates = calcRate(arrayValue);
+            arrayRateAlter.push(arrayRates);
+
+            lambdaMAI = calcLambda(arrayValue, arrayRates);
+            indexSogl = calcIndexSogl(lambdaMAI, arrayValue.length);
+            otnoshSogl = calcOtnoshSogl(indexSogl, arrayValue.length);
+            
+
+            console.log("lambda", lambdaMAI);
+            console.log("IS", indexSogl);
+            console.log("OS", otnoshSogl);
+    
+            createResInfo(matrix.parentElement, arrayRates, lambdaMAI, 
+            indexSogl, otnoshSogl);
+    
+        }
+    
+        function createResInfo(blockElement, array, lamdaMAI, is, os, typeMatrix="A"){
+            // вывод результатов подсчета
+            const tblInfo = document.createElement("table");
+            hdEl = document.createElement("tr");
+            tblInfo.appendChild(hdEl);
+    
+            cellName = document.createElement("th");
+            cellName.innerText = "Наименование";
+            cellValue = document.createElement("th");
+            cellValue.innerText = "Значение"
+    
+            hdEl.appendChild(cellName);
+            hdEl.appendChild(cellValue);
+    
+            // таблица весов
+            for (i=0; i<=array.length-1; i++){
+                console.log(i);
+                const row = document.createElement("tr");
+                let cell1 = document.createElement("td");
+                cell1.innerText = typeMatrix + i;
+    
+                let cell2 = document.createElement("td");
+                cell2.innerText = array[i];
+    
+                row.appendChild(cell1);
+                row.appendChild(cell2);
+                console.log(row);
+    
+                tblInfo.appendChild(row);
+            }
+    
+            // итоговая привязка
+            blockElement.appendChild(tblInfo);
+ 
+    
+        }
+    
+    
+        function arrayFromRow(cells, numberRow, numberCol){
+            // первую строку в матрицу по методу УМАИ
+
+            // проход по инпутам, преобразование в массив
+            const arrayValues = [];
+            count = 0 // счетчик пройденных элементов
+            row1 = []
+
+            for (let i=1; i<=numberRow; i++){
+                // проход эталонной строки
+                currentCell = cells[count].value;
+                row1.push(parseFloat(currentCell));
+                count++;
+            }
+
+            // заполнение нулями
+            for (let i=1; i<=numberRow; i++){
+                arrayRow = []
+                for (let j=1; j<=numberCol; j++){
+                    arrayRow.push(0)
+                }
+                arrayValues.push(arrayRow);
+            }
+            
+            for (let i=0; i<=numberRow-1; i++){
+                // проход строк
+                console.log("row:", i);
+                let arrayRow = [];
+                for (let j=0; j<=numberCol-1; j++){
+                     // проход столбцов
+                    if (i==0){
+                        arrayValues[i][j] = row1[j];
+                    } else if (j == i){
+                        arrayValues[i][j] = 1;
+                    } else if (j < i ){
+                        arrayValues[i][j] = 1 / arrayValues[j][i]
+                    } else if (j > i){
+                        arrayValues[i][j] = arrayValues[0][j] / arrayValues[0][i]
+                    }
+                }
+            }
+            return arrayValues
+        }
+
+
+        function calcRate(arrayValue){
+            let BreakException = {}; // реализация break для forEach
+            let arrayRate = []
+            let arrayGeomMean = []
+            let sumGeomMeanGlobal = 0
+    
+    
+            
+                // подсчет среднего геометрического
+                arrayValue.forEach(row => {
+                let geomMeanRow = 1
+                row.forEach(cell=>{
+                    geomMeanRow = geomMeanRow * cell;
+                })
+            
+                console.log("row:", geomMeanRow);
+                let geomMean = Math.pow(geomMeanRow, 1/row.length);
+                sumGeomMeanGlobal += geomMean;
+                console.log("geomMean:", geomMean);
+                arrayGeomMean.push(geomMean);
+            })
+    
+            console.log(arrayGeomMean);
+            console.log("globalMean", sumGeomMeanGlobal);
+            // подсчет весов 
+            arrayGeomMean.forEach(el=>{
+                    rateRow = el / sumGeomMeanGlobal;
+                    arrayRate.push(rateRow);
+            })
+            console.log("Rate:", arrayRate);
+            return  arrayRate;
+        }
+    
+        function calcLambda(arrayValue, arrayRates){
+            // подсчет лямбды для ИС
+            let lambdaMAI = 0 // лямбда
+            let arraySumCol = []; // сумма по столбцам
+    
+            arrayValue.forEach(el=>{
+                arraySumCol.push(0);
+            })
+    
+            // формирование списка сумм
+            for (i=0; i<arrayValue.length; i++){
+                for (j=0; j<arrayValue.length; j++){
+                    arraySumCol[j] += arrayValue[i][j];
+                }
+            }
+            console.log("sumArr", arraySumCol);
+    
+            // подсчет лямбды
+            for (i=0; i<arrayValue.length; i++){
+                lambdaMAI += arrayRates[i] * arraySumCol[i];
+            }
+            return lambdaMAI
+        }
+    
+        function calcIndexSogl(lamdaMAI, lenMatrix){
+            indexSogl = (lamdaMAI-lenMatrix)/(lenMatrix-1);
+            console.log(indexSogl);
+            return indexSogl;
+        }
+    
+        function calcOtnoshSogl(indexSogl, lenMatrix){
+            console.log("arra", arrayOS)
+            otnoshSogl = indexSogl/arrayOS[lenMatrix-1];
+            return otnoshSogl
+        }
+    
+        function calcGlobalRate(){
+            arrayGlobalRate = [];
+            console.log(arrayRateCrit);
+            console.log(arrayRateAlter);
+        
+            for (i=0; i<=arrayRateAlter.length-1; i++){
+                // обход весов критериев
+                proz = 0;
+                for (j=0; j<=arrayRateCrit.length-1; j++){
+                    // обход весов альтернатив
+                    proz += arrayRateAlter[j][i] * arrayRateCrit[j];
+                    console.log(proz);
+                }
+                arrayGlobalRate.push(proz);
+            }    
+            showGlobalResults();
+            return arrayGlobalRate
+        }
+    
+        function showGlobalResults(){
+            // показать итоговые результаты
+            blockForRes = document.createElement("div");
+            blockForRes.setAttribute("id", "resultBlock");
+    
+            const tblInfo = document.createElement("table");
+            hdEl = document.createElement("tr");
+            blockForRes.appendChild(tblInfo);
+            tblInfo.appendChild(hdEl);
+    
+            cellName = document.createElement("th");
+            cellName.innerText = "Альтернатива";
+            cellValue = document.createElement("th");
+            cellValue.innerText = "Значение"
+    
+            hdEl.appendChild(cellName);
+            hdEl.appendChild(cellValue);
+    
+            // таблица весов
+            for (i=0; i<=arrayGlobalRate.length-1; i++){
+                console.log(i);
+                const row = document.createElement("tr");
+                let cell1 = document.createElement("td");
+                cell1.innerText = "A" + i;
+    
+                let cell2 = document.createElement("td");
+                cell2.innerText = arrayGlobalRate[i];
+    
+                row.appendChild(cell1);
+                row.appendChild(cell2);
+                console.log(row);
+    
+                tblInfo.appendChild(row);
+            }
+            cont = document.getElementsByClassName("container")[0]
+            console.log(cont);
+            console.log(blockForRes);
+            cont.appendChild(blockForRes);
+            createChart(blockForRes);
+        }
+        function createChart(blockForChart){
+    
+            can = document.createElement("canvas");
+            can.setAttribute("id", "chartRes");
+    
+            blockForChart.appendChild(can);
+    
+            labels = []
+            for (i=1; i<=arrayGlobalRate.length; i++){
+                labels.push(`a${i}`)
+            }
+            
+            data = {
+                labels: labels,
+                datasets: [
+                    {   label: "Глобальный приоритет",
+                        data: arrayGlobalRate
+                    }],
+            }
+            console.log(data);
+            const configChart = {
+                type: 'bar',
+                data: data,
+                options: {
+                    scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                    }
+                },
+            };
+    
+            let chartRes = new Chart(can, configChart); 
+    
+        }
+    
+    </script>
+    </div>
+
+    <!--Футер-->
+    <footer class="container">
+        <div class="foot m-5">
+            <b><i>2022</i></b>
+        </div>
+
+    </footer>
+
+
+    <!-- Либы для работы бутстрапа-->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3" crossorigin="anonymous"></script>
+
+</body>
+</html>
