@@ -23,65 +23,38 @@
         <div class="criteries">
         <h5>Введите количество критериев</h5>
             <input type="text" id="number_cr">
-            <button  href="javascript:void()" onclick="createMatricesCrit()">Подтвердить</button>
+            <button  class="btn btn-primary" href="javascript:void()" onclick="createMatricesCrit()">Подтвердить</button>
             <br>
         </div>
     
         <h5>Введите количество альтернатив</h5><br>
         <input type="text"  id="number_al">
-        <button  href="javascript:void()" onclick="createMatricesAlternatives()">Подтвердить</button>
+        <button  class="btn btn-primary" href="javascript:void()" onclick="createMatricesAlternatives()">Подтвердить</button>
     
     <script>
     
-        const arrayOS = [0, 0, 0.58, 0.90, 1.12, 1.24, 1.32, 1.41, 1.45, 1.49];
-        let arrayRateCrit = [];
-        let arrayRateAlter = [];
-        let arrayGlobalRate = [];
-        let number_Cr = 0;
-        let number_Al = 0;
+        const arrayOS = [0, 0, 0.58, 0.90, 1.12, 1.24, 1.32, 1.41, 1.45, 1.49]; 
+        let arrayRateCrit = []; // вектор оценок критериев
+        let arrayRateAlter = []; // матрица оценок альтернатив
+        let arrayGlobalRate = []; // вектор глобальных приоритетов
+        let number_Cr = 0;      // количество критериев
+        let number_Al = 0;      // количество альтернатив
     
         function createMatricesCrit(){
             // формирование матрицы критериев 
             criteria = document.getElementById("number_cr").value;
             number_Cr = criteria;
+
             // кнопка подсчета матрицы критериев
             const calcBtn = document.createElement("button");
             calcBtn.setAttribute('id', "calcMatrixCriteria");
-            calcBtn.setAttribute('class', "btn btn-primary");
+            calcBtn.setAttribute('class', "btn btn-info");
             calcBtn.setAttribute('href', "javascript:void()");
             calcBtn.setAttribute('onclick', "calcMatrixCriteria()");
             calcBtn.innerText = "Вычислить";
-            const divCrit = document.getElementsByClassName("criteries")[0];
+
+            const divCrit = document.getElementsByClassName("criteries")[0]; 
             createMatrix("MatrixCriteria", criteria, criteria, divCrit, calcBtn); // создание матрицы критериев
-        }
-    
-        function createMatricesAlternatives(){
-            // формирование матриц альтернатив
-            criteria = document.getElementById("number_cr").value;
-            alternatives = document.getElementById("number_al").value;
-            number_Al = alternatives;
-            
-            // создание всех матриц сравнение альтернатив по критериям
-            for (i=1; i<=criteria; i++){
-                // кнопка подсчета матрицы критериев
-                let idMatrix = "MatrixAlternative"+i
-                const blockMatrix = document.getElementsByClassName("container")[0];
-                const nameBlockMatr = document.createElement("h6");
-                nameBlockMatr.innerText = `K${i}`;
-                blockMatrix.appendChild(nameBlockMatr);
-                createMatrix(idMatrix, alternatives, alternatives, blockMatrix); 
-            }
-    
-            br = document.createElement("br");
-            blockForRes.appendChild(br);
-            calcBtnGlobalRate = document.createElement("button");
-            calcBtnGlobalRate.setAttribute('class', 'btn btn-danger');
-            calcBtnGlobalRate.setAttribute('id', `calcBtnGlobalRate`);
-            calcBtnGlobalRate.setAttribute('href', "javascript:void()");
-            calcBtnGlobalRate.setAttribute('onclick', "calcGlobalRate()");
-            calcBtnGlobalRate.style.margin = "20px";
-            calcBtnGlobalRate.innerText = "Вычислить глобальный приоритет";
-            blockForRes.appendChild(calcBtnGlobalRate);
         }
     
         function createMatrix(idMatrix, numberRow, numberCol, divB, calcBtn=null){
@@ -105,7 +78,6 @@
             const tbl = document.createElement("table");
             const tblBody = document.createElement("tbody");
 
-        
             // создание шапки
             headRow = document.createElement("tr");
             for (let i = 1; i <= numberRow; i++){
@@ -141,7 +113,6 @@
 
                     });
 
-                    
                     cell.appendChild(inp);
                     row.appendChild(cell);
                 }
@@ -173,7 +144,35 @@
             } else {
                 divB.appendChild(calcBtn);
             }
-          
+        }
+
+        function createMatricesAlternatives(){
+            // формирование матриц альтернатив
+            criteria = document.getElementById("number_cr").value;
+            alternatives = document.getElementById("number_al").value;
+            number_Al = alternatives;
+            
+            // создание всех матриц сравнение альтернатив по критериям
+            for (i=1; i<=criteria; i++){
+                // кнопка подсчета матрицы критериев
+                let idMatrix = "MatrixAlternative"+i
+                const blockMatrix = document.getElementsByClassName("container")[0];
+                const nameBlockMatr = document.createElement("h6");
+                nameBlockMatr.innerText = `K${i}`;
+                blockMatrix.appendChild(nameBlockMatr);
+                createMatrix(idMatrix, alternatives, alternatives, blockMatrix); 
+            }
+    
+            br = document.createElement("br");
+            blockForRes.appendChild(br);
+            calcBtnGlobalRate = document.createElement("button");
+            calcBtnGlobalRate.setAttribute('class', 'btn btn-info');
+            calcBtnGlobalRate.setAttribute('id', `calcBtnGlobalRate`);
+            calcBtnGlobalRate.setAttribute('href', "javascript:void()");
+            calcBtnGlobalRate.setAttribute('onclick', "calcGlobalRate()");
+            calcBtnGlobalRate.style.margin = "20px";
+            calcBtnGlobalRate.innerText = "Вычислить глобальный приоритет";
+            blockForRes.appendChild(calcBtnGlobalRate);
         }
     
         function calcMatrixCriteria(){
@@ -200,11 +199,10 @@
             console.log("OS", otnoshSogl);
     
             createResInfo(matrix.parentElement, arrayRatesCrit, lambdaMAI, 
-            indexSogl, otnoshSogl,typeMatrix="K");
+                indexSogl, otnoshSogl,typeMatrix="K");
             event.target.remove(); // удаление кнопки для избегания бага с дублированием весов
-
-    
         }
+
         function calcMatrixInfo(matrix, number){
             // подсчет матрицы
             matrix = matrix;
@@ -230,12 +228,11 @@
             createResInfo(matrix.parentElement, arrayRates, lambdaMAI, 
             indexSogl, otnoshSogl);
             event.target.remove(); // удаление кнопки для избегания бага с дублированием весов
-
-    
         }
     
         function createResInfo(blockElement, array, lamdaMAI, is, os, typeMatrix="A"){
-            // вывод результатов подсчета
+            // вывод результатов подсчета данных
+
             const tblInfo = document.createElement("table");
             hdEl = document.createElement("tr");
             tblInfo.appendChild(hdEl);
@@ -267,6 +264,7 @@
     
             // индексы
             listIndexis = document.createElement('ul');
+            listIndexis.style.margin = "2em";
     
             lmdaEl = document.createElement('li');
             lmdaEl.innerText = "Lamda: " + lamdaMAI;
@@ -290,6 +288,7 @@
     
         function arrayFromCells(cells, numberRow, numberCol){
             // проход по инпутам, преобразование в массив
+
             const arrayValues = [];
             count = 0 // счетчик пройденных элементов
             for (let i=1; i<=numberRow; i++){
@@ -299,7 +298,6 @@
                 for (let j=1; j<=numberCol; j++){
                      // проход столбцов
                     currentCell = cells[count].value;
-                    console.log(currentCell);
                     arrayRow.push(parseFloat(currentCell));
                     count ++;
                 }
@@ -310,11 +308,12 @@
     
     
         function calcRate(arrayValue){
+            //подсчет рейтинга массива  
+
             let BreakException = {}; // реализация break для forEach
             let arrayRate = []
             let arrayGeomMean = []
             let sumGeomMeanGlobal = 0
-    
     
             try{
                 // подсчет среднего геометрического
@@ -373,6 +372,8 @@
         }
     
         function calcIndexSogl(lamdaMAI, lenMatrix){
+            // рассчет индекса согласованности
+
             indexSogl = (lamdaMAI-lenMatrix)/(lenMatrix-1);
             console.log(indexSogl);
             return indexSogl;
@@ -385,9 +386,10 @@
         }
     
         function calcGlobalRate(){
+            // рассчет глобального рейтинга результатов
+
+
             arrayGlobalRate = [];
-            console.log(arrayRateCrit);
-            console.log(arrayRateAlter);
         
             for (i=0; i<=arrayRateAlter.length-1; i++){
                 // обход весов критериев
@@ -405,6 +407,7 @@
     
         function showGlobalResults(){
             // показать итоговые результаты
+
             blockForRes = document.createElement("div");
             blockForRes.setAttribute("id", "resultBlock");
     
@@ -443,8 +446,10 @@
             cont.appendChild(blockForRes);
             createChart(blockForRes);
         }
+
         function createChart(blockForChart){
-    
+            // вывод столбчатого графика результатов
+
             can = document.createElement("canvas");
             can.setAttribute("id", "chartRes");
     
@@ -479,6 +484,7 @@
     
         }
     
+
     </script>
     </div>
 
